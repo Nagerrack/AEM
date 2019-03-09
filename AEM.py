@@ -47,32 +47,70 @@ def prims_iteration(tree, nodes_left, dist_matrix):
     print(min(distances, key=distances.get))
 
 
+def count_mst_length(tree):
+    pass
+
+
 def mst_sum(tree):
     return 1
 
-
+# the groups are represented as a list of 10 lists containing points
+# after an initialisation each group contains a randomly chosen point
 def init_groups(points, groups_number=10):
     groups = []
 
     for i in range(groups_number):
         index = random.randint(0, len(points))
-        groups.append(points[index])
+        groups.append([points[index]])
         del points[index]
 
     return points, groups
 
+# finds n groups which have the smallest minimal spanning trees after adding a new point
+def find_n_min_msts(point, groups, distances, n=3):
+    groups_mst = []
 
+    for i in range(len(groups)):
+        # todo: insert actual function that counts the length of a minimal spanning tree (instead of "count_mst_length")
+        groups_mst.append([i, count_mst_length(groups[i] + point, distances)])
+
+    return sorted(groups_mst,key=lambda l:l[1])[:n]
+
+# for each point:
+# 1. finds 3 groups with smallest mst (in a case when the point was added to the group)
+# 2. adds the point to a randomly chosen group (to one of those 3)
 def grasp(points, distances):
     points, groups = init_groups(points)
+
+    '''
+    for point in points:
+        min_msts = find_n_min_msts(point, groups, distances)
+        index = min_msts[random.randint(0, 3)][0]
+        groups[index].append(point)
+    '''
+
+    return groups
+
+
+def plot_groups(groups):
+    colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FF8C00', '#696969', '#7B68EE', '#7FFFD4', '#008080']
+
+    for i in range(len(groups)):
+        x, y = zip(*groups[i])
+        plt.scatter(x, y, c=colors[i])
+
+    plt.show()
 
 
 def main():
     points = load_points(r'objects.data')
     distances = distance_matrix(points, points)
 
-    grasp(points, distances)
+    groups = grasp(points, distances)
 
-    plot_points(points)
+    plot_groups(groups)
+
+    # plot_points(points)
     # prims_iteration([0, 1, 2], [3, 4, 5, 6, 7, 8], distance_matrix(points, points))
 
 main()
