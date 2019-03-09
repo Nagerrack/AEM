@@ -1,10 +1,12 @@
 import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import euclidean
+import random
 
-file_path = r'objects.data'
+def load_points(file_path):
+    with open(file_path) as data_file:
+        return [[int(number) for number in line.split()] for line in data_file]
 
 
 def result_scores(result_list):
@@ -30,8 +32,7 @@ def distance_matrix(x, y):
 
 def plot_points(point_list):
     x, y = zip(*point_list)
-    plt.scatter(x[:len(x) // 2], y[:len(y) // 2], c='r')
-    plt.scatter(x[len(x) // 2:], y[len(x) // 2:], c='b')
+    plt.scatter(x, y, c='b')
 
     # plt.scatter(x, y)
     plt.show()
@@ -50,14 +51,28 @@ def mst_sum(tree):
     return 1
 
 
-with open(file_path) as data_file:
-    points = []
-    for line in data_file:
-        points.append([int(number) for number in line.split()])
+def init_groups(points, groups_number=10):
+    groups = []
 
-# print(points)
-# print(len(points))
-# print(distance_matrix(points, points))
+    for i in range(groups_number):
+        index = random.randint(0, len(points))
+        groups.append(points[index])
+        del points[index]
 
-plot_points(points)
-prims_iteration([0, 1, 2], [3, 4, 5, 6, 7, 8], distance_matrix(points, points))
+    return points, groups
+
+
+def grasp(points, distances):
+    points, groups = init_groups(points)
+
+
+def main():
+    points = load_points(r'objects.data')
+    distances = distance_matrix(points, points)
+
+    grasp(points, distances)
+
+    plot_points(points)
+    # prims_iteration([0, 1, 2], [3, 4, 5, 6, 7, 8], distance_matrix(points, points))
+
+main()
