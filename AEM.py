@@ -1,8 +1,11 @@
+import random
 import time
+
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 from scipy.spatial.distance import euclidean
-import random
+
 
 def load_points(file_path):
     with open(file_path) as data_file:
@@ -30,14 +33,6 @@ def distance_matrix(x, y):
     return matrix
 
 
-def plot_points(point_list):
-    x, y = zip(*point_list)
-    plt.scatter(x, y, c='b')
-
-    # plt.scatter(x, y)
-    plt.show()
-
-
 def prims_iteration(tree, nodes_left, dist_matrix):
     distances = {}
     for i in tree:
@@ -47,24 +42,30 @@ def prims_iteration(tree, nodes_left, dist_matrix):
     print(min(distances, key=distances.get))
 
 
-def count_mst_length(tree):
-    pass
+def append_mst(tree, point, dist_matrix):
+    edge_dict = {(node, point): dist_matrix[node, point] for node in tree.nodes()}
+    tree.add_edge(*min(edge_dict, key=edge_dict.get))
 
 
-def mst_sum(tree):
-    return 1
+def mst_append_cost(tree, point, dist_matrix):
+    return min({(node, point): dist_matrix[node, point] for node in tree.nodes()}.values())
+
+
+def count_mst_length(tree, dist_matrix):
+    return sum([dist_matrix[edge] for edge in tree.edges()])
+
 
 # the groups are represented as a list of 10 lists containing points
 # after an initialisation each group contains a randomly chosen point
 def init_groups(points, groups_number=10):
-    groups = []
+    groups = [nx.Graph() for _ in range(groups_number)]
 
     for i in range(groups_number):
         index = random.randint(0, len(points))
-        groups.append([points[index]])
-        del points[index]
+        groups[i].add_node(index)
 
-    return points, groups
+    return groups
+
 
 # finds n groups which have the smallest minimal spanning trees after adding a new point
 def find_n_min_msts(point, groups, distances, n=3):
@@ -74,13 +75,14 @@ def find_n_min_msts(point, groups, distances, n=3):
         # todo: insert actual function that counts the length of a minimal spanning tree (instead of "count_mst_length")
         groups_mst.append([i, count_mst_length(groups[i] + point, distances)])
 
-    return sorted(groups_mst,key=lambda l:l[1])[:n]
+    return sorted(groups_mst, key=lambda l: l[1])[:n]
+
 
 # for each point:
 # 1. finds 3 groups with smallest mst (in a case when the point was added to the group)
 # 2. adds the point to a randomly chosen group (to one of those 3)
 def grasp(points, distances):
-    points, groups = init_groups(points)
+    groups = init_groups(points)
 
     '''
     for point in points:
@@ -92,13 +94,15 @@ def grasp(points, distances):
     return groups
 
 
-def plot_groups(groups):
-    colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FF8C00', '#696969', '#7B68EE', '#7FFFD4', '#008080']
+def plot_groups(groups, points):
+    colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF',
+              '#FF00FF', '#FF8C00', '#696969', '#7B68EE', '#7FFFD4', '#008080']
+
+    color_dict = {i: colors[i] for i in range(len(colors))}
 
     for i in range(len(groups)):
-        x, y = zip(*groups[i])
-        plt.scatter(x, y, c=colors[i])
-
+        for j in groups[i].nodes():
+            plt.scatter(*points[j], c=color_dict[i])
     plt.show()
 
 
@@ -106,11 +110,22 @@ def main():
     points = load_points(r'objects.data')
     distances = distance_matrix(points, points)
 
-    groups = grasp(points, distances)
+    # groups = grasp(points, distances)
 
-    plot_groups(groups)
+    # plot_groups(groups)
 
-    # plot_points(points)
-    # prims_iteration([0, 1, 2], [3, 4, 5, 6, 7, 8], distance_matrix(points, points))
+    # print(count_mst_length([(1, 2), (2, 3), (5, 7), (2, 7), (7, 100)], distances))
+
+    G = nx.Graph()
+    H = nx.Graph()
+    for i in range(0, 10):
+        G.add_node(i)
+    for i in range(10, 20):
+        H.add_node(i)
+
+    plot_groups([G, H], points)
+
+    print(mst_append_cost(G, 100, distances))
+
 
 main()
