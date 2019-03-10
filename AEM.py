@@ -16,13 +16,31 @@ def result_scores(result_list):
     return min(result_list), max(result_list), sum(result_list) / len(result_list)
 
 
-def measure_execution_time(func, parameters):
+def measure_execution_time_and_result(func, parameters):
     start = time.time()
-    func(*parameters)
+    result = func(*parameters)
     stop = time.time()
     time_elapsed = stop - start
     # print(time_elapsed)
-    return time_elapsed
+    return result, time_elapsed
+
+
+def experiment_measurements(func, parameters, dist_matrix, points):
+    result_dict = {}
+    for i in range(100):
+        result, time_elapsed = measure_execution_time_and_result(func, parameters)
+        result_dict[round(sum_all_groups(result, dist_matrix), 3)] = (result, time_elapsed)
+
+    max_group, time_elapsed1 = result_dict[max(result_dict)]
+    min_group, time_elapsed2 = result_dict[min(result_dict)]
+    plot_groups(max_group, points, save=True, name='MaxFigure')
+    plot_groups(min_group, points, save=True, name='MinFigure')
+
+    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s', *result_scores(result_dict.keys()),
+          round(result_dict[min(result_dict)][1], 2), round(result_dict[max(result_dict)][1], 2),
+          round(result_scores([result[1] for result in result_dict.values()][2]), 2))
+    # print('Time:')
+    # print('Min:{}, Max:{}, Average:{}', *result_scores([result[1] for result in result_dict.values()]))
 
 
 def distance_matrix(x, y):
@@ -55,6 +73,10 @@ def count_mst_length(tree, dist_matrix):
     return sum([dist_matrix[edge] for edge in tree.edges()])
 
 
+def sum_all_groups(groups, dist_matrix):
+    return sum([count_mst_length(groups, dist_matrix) for group in groups])
+
+
 # the groups are represented as a list of 10 lists containing points
 # after an initialisation each group contains a randomly chosen point
 def init_groups(points, groups_number=10):
@@ -72,7 +94,7 @@ def find_n_min_msts(point, groups, distances, n=3):
     groups_mst = []
 
     for i in range(len(groups)):
-        # todo: insert actual function that counts the length of a minimal spanning tree (instead of "count_mst_length")
+        # todo: insert actual function that counts the length of a minimal spanning tree (instead of 'count_mst_length')
         groups_mst.append([i, count_mst_length(groups[i] + point, distances)])
 
     return sorted(groups_mst, key=lambda l: l[1])[:n]
@@ -94,7 +116,7 @@ def grasp(points, distances):
     return groups
 
 
-def plot_groups(groups, points):
+def plot_groups(groups, points, save=False, name='figure'):
     colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF',
               '#FF00FF', '#FF8C00', '#696969', '#7B68EE', '#7FFFD4', '#008080']
 
@@ -104,6 +126,8 @@ def plot_groups(groups, points):
         for j in groups[i].nodes():
             plt.scatter(*points[j], c=color_dict[i])
     plt.show()
+    if save:
+        plt.savefig(name + '.png')
 
 
 def main():
