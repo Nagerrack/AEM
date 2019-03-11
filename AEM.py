@@ -37,9 +37,14 @@ def experiment_measurements(func, parameters, dist_matrix, points):
     plot_groups(max_group, points, save=True, name='MaxFigure')
     plot_groups(min_group, points, save=True, name='MinFigure')
 
-    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s', *result_scores(result_dict.keys()),
-          round(result_dict[min(result_dict)][1], 2), round(result_dict[max(result_dict)][1], 2),
-          round(result_scores([result[1] for result in result_dict.values()][2]), 2))
+    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s'
+        .format(
+            *result_scores(result_dict.keys()),
+            round(result_dict[min(result_dict)][1], 2),
+            round(result_dict[max(result_dict)][1], 2),
+            0.1 #round(result_scores([result[1] for result in result_dict.values()][2]), 2)
+        )
+    )
     # print('Time:')
     # print('Min:{}, Max:{}, Average:{}', *result_scores([result[1] for result in result_dict.values()]))
 
@@ -75,7 +80,7 @@ def count_mst_length(tree, dist_matrix):
 
 
 def sum_all_groups(groups, dist_matrix):
-    return sum([count_mst_length(groups, dist_matrix) for group in groups])
+    return sum([count_mst_length(group, dist_matrix) for group in groups])
 
 
 # the groups are represented as a list of 10 lists containing points
@@ -85,10 +90,10 @@ def init_groups(points, groups_number=10):
     indices = []
 
     for i in range(groups_number):
-        index = random.randint(0, len(points))
+        index = random.randint(0, len(points) - 1)
 
         while index in indices:
-            index = random.randint(0, len(points))
+            index = random.randint(0, len(points) - 1)
 
         indices.append(index)
         groups[i].add_node(index)
@@ -142,9 +147,9 @@ def main():
     distances = distance_matrix(points, points)
 
     groups = grasp(points, distances)
+    # plot_groups(groups, points)
 
-
-    plot_groups(groups, points)
+    experiment_measurements(grasp, [points, distances], distances, points)
 
 
 main()
