@@ -1,6 +1,5 @@
 import random
 import time
-import copy
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -14,7 +13,7 @@ def load_points(file_path):
 
 
 def result_scores(result_list):
-    return min(result_list), max(result_list), sum(result_list) / len(result_list)
+    return min(result_list), max(result_list), round(sum(result_list) / len(result_list), 4)
 
 
 def measure_execution_time_and_result(func, parameters):
@@ -37,13 +36,14 @@ def experiment_measurements(func, parameters, dist_matrix, points):
     plot_groups(max_group, points, save=True, name='MaxFigure')
     plot_groups(min_group, points, save=True, name='MinFigure')
 
-    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s'
-        .format(
-            *result_scores(result_dict.keys()),
-            round(result_dict[min(result_dict)][1], 2),
-            round(result_dict[max(result_dict)][1], 2),
-            0.1 #round(result_scores([result[1] for result in result_dict.values()][2]), 2)
-        )
+    time_list = [result[1] for result in result_dict.values()]
+
+    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s'.format(
+        *result_scores(result_dict.keys()),
+        round(result_dict[min(result_dict)][1], 4),
+        round(result_dict[max(result_dict)][1], 4),
+        round(result_scores(time_list)[2], 4)
+    )
     )
     # print('Time:')
     # print('Min:{}, Max:{}, Average:{}', *result_scores([result[1] for result in result_dict.values()]))
@@ -123,10 +123,16 @@ def grasp(points, distances):
 
         min_msts = find_n_min_msts(i, groups, distances)
         index = min_msts[random.randint(0, 2)][0]
-        groups[index].add_node(i)
+        append_mst(groups[index], i, distances)
 
     return groups
 
+
+def regret(points, distances):
+    groups, indices = init_groups(points)
+    
+
+    return groups
 
 def plot_groups(groups, points, save=False, name='figure'):
     colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF',
@@ -137,19 +143,31 @@ def plot_groups(groups, points, save=False, name='figure'):
     for i in range(len(groups)):
         for j in groups[i].nodes():
             plt.scatter(*points[j], c=color_dict[i])
-    plt.show()
+
     if save:
         plt.savefig(name + '.png')
+        plt.show()
+    else:
+        plt.show()
 
 
 def main():
     points = load_points(r'objects.data')
     distances = distance_matrix(points, points)
 
-    groups = grasp(points, distances)
+    # groups = grasp(points, distances)
     # plot_groups(groups, points)
 
     experiment_measurements(grasp, [points, distances], distances, points)
+
+    # G = nx.Graph()
+    # H = nx.Graph()
+    #
+    # for i in range(10):
+    #     G.add_edge(i, i + 1)
+    # for i in range(10, 20):
+    #     H.add_edge(i, i + 1)
+    # print(sum_all_groups([G, H], distances))
 
 
 main()
