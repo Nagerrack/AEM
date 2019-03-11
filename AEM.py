@@ -97,7 +97,7 @@ def init_groups(points, groups_number=10):
 
 
 # finds n groups which have the smallest minimal spanning trees after adding a new point
-def find_n_min_msts(point_id, groups, distances, n=1):
+def find_n_min_msts(point_id, groups, distances, n=3):
     groups_mst = []
 
     for i in range(len(groups)):
@@ -117,7 +117,7 @@ def grasp(points, distances):
             continue
 
         min_msts = find_n_min_msts(i, groups, distances)
-        index = min_msts[random.randint(0, 0)][0]
+        index = min_msts[random.randint(0, 2)][0]
         groups[index].add_node(i)
 
     return groups
