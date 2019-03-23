@@ -16,7 +16,7 @@ def measure_execution_time_and_result(func, parameters):
     return result, time_elapsed
 
 
-def experiment_measurements(func, parameters, aggregate_func, dist_matrix, points):
+def experiment_measurements(func, parameters, aggregate_func, dist_matrix, points, plot_suffix=''):
     result_dict = {}
     for i in range(100):
         result, time_elapsed = measure_execution_time_and_result(func, parameters)
@@ -24,8 +24,8 @@ def experiment_measurements(func, parameters, aggregate_func, dist_matrix, point
 
     max_group, time_elapsed1 = result_dict[max(result_dict)]
     min_group, time_elapsed2 = result_dict[min(result_dict)]
-    plot_groups(max_group, points, save=True, name='MaxFigure')
-    plot_groups(min_group, points, save=True, name='MinFigure')
+    plot_groups(max_group, points, save=True, name='plots/max_figure' + plot_suffix)
+    plot_groups(min_group, points, save=True, name='plots/min_figure' + plot_suffix)
 
     time_list = [result[1] for result in result_dict.values()]
 

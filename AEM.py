@@ -137,9 +137,9 @@ def main():
     points = load_points(r'objects.data')
     distances = distance_matrix(points, points)
 
-    experiment_measurements(grasp, [points, distances], sum_all_groups, distances, points)
+    experiment_measurements(grasp, [points, distances], sum_all_groups, distances, points, plot_suffix='_grasp')
 
-    experiment_measurements(regret, [points, distances], sum_all_groups, distances, points)
+    experiment_measurements(regret, [points, distances], sum_all_groups, distances, points, plot_suffix='_regret')
 
 
 main()
