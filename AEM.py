@@ -40,34 +40,38 @@ def sum_all_groups_mst(groups, dist_matrix):
     return sum([count_mst_length(group, dist_matrix) for group in groups])
 
 
+def sum_pair_distances(group_nodes, dist_matrix):
+    group_sum = 0
+
+    for i in range(0, len(group_nodes)):
+        group_sum += sum([dist_matrix[i, j] for j in range(i, len(group_nodes))])
+
+    return group_sum
+
+
 def sum_all_groups_fully_connected(groups, dist_matrix):
     distance_sums = []
 
     for group in groups:
-        group_sum = 0
-        group_nodes = group.nodes()
-        for i in range(0, len(group_nodes)):
-            group_sum += sum([dist_matrix[i, j] for j in range(i, len(group_nodes))])
-        distance_sums.append(group_sum)
+        distance_sums.append(sum_pair_distances(group.nodes(), dist_matrix))
 
     return np.mean(distance_sums)
 
 
 # the groups are represented as a list of 10 graphs
-# after an initialisation each group contains a randomly chosen point
-#TODO point should not be chosen randomly
-def init_groups(points, groups_number=10):
+# after an initialisation each group contains a point which is quite close to n other points (n = average group size)
+def init_groups(points, dist_matrix, groups_number=10):
     groups = [nx.Graph() for _ in range(groups_number)]
-    indices = []
+    average_group_size = len(points) // groups_number
+    min_distances = np.array([])
 
-    for i in range(groups_number):
-        index = random.randint(0, len(points) - 1)
+    for i in range(len(points)):
+        np.append(min_distances, sum(np.sort(dist_matrix[i])[:average_group_size]))
 
-        while index in indices:
-            index = random.randint(0, len(points) - 1)
+    indices = min_distances.argsort()[:10]
 
-        indices.append(index)
-        groups[i].add_node(index)
+    for i in range(len(indices)):
+        groups[i].add_node(indices[i])
 
     return groups, indices
 
@@ -82,19 +86,35 @@ def find_n_min_msts(point_id, groups, distances, n=3):
     return sorted(groups_mst, key=lambda l: l[1])[:n]
 
 
+def get_sum_append_cost(node, group_nodes, dist_matrix):
+    return sum([dist_matrix[node, i] for i in range(len(group_nodes))])
+
+# finds 1 group which has the smallest average sum of distances between each pair
+def find_min_average_distances_sum(point_id, groups, distances):
+    min_group_id = 0
+    min_append_cost = get_sum_append_cost(point_id, groups[0].nodes(), distances)
+
+    for i in range(1, len(groups)):
+        append_cost = get_sum_append_cost(point_id, groups[i].nodes(), distances)
+        if min_append_cost > append_cost:
+            min_append_cost = append_cost
+            min_group_id = i
+
+    return min_group_id
+
+
 # for each point:
 # 1. finds 3 groups with smallest mst (in a case when the point was added to the group)
 # 2. adds the point to a randomly chosen group (to one of those 3)
 def grasp(points, distances):
-    groups, indices = init_groups(points)
+    groups, indices = init_groups(points, distances)
 
     for i, point in enumerate(points):
         if i in indices:
             continue
 
-        min_msts = find_n_min_msts(i, groups, distances)
-        index = min_msts[random.randint(0, 2)][0]
-        append_mst(groups[index], i, distances)
+        index = find_min_average_distances_sum(i, groups, distances)
+        groups[index].add_node(i)
 
     return groups
 
