@@ -36,8 +36,13 @@ def count_mst_length(tree, dist_matrix):
     return sum([dist_matrix[edge] for edge in tree.edges()])
 
 
-def sum_all_groups(groups, dist_matrix):
+def sum_all_groups_mst(groups, dist_matrix):
     return sum([count_mst_length(group, dist_matrix) for group in groups])
+
+
+# TODO
+def sum_all_groups_fully_connected(groups, dist_matrix):
+    pass
 
 
 # the groups are represented as a list of 10 graphs
@@ -133,13 +138,34 @@ def regret(points, distances):
     return groups
 
 
+# TODO
+def local_search_greedy(groups, dist_matrix):
+    return groups
+
+
+# TODO
+def local_search_steep(groups, dist_matrix):
+    return groups
+
+
 def main():
-    points = load_points(r'objects.data')
+    points = load_points(r'data\objects20_06.data')
     distances = distance_matrix(points, points)
 
-    experiment_measurements(grasp, [points, distances], sum_all_groups, distances, points, plot_suffix='_grasp')
+    # experiment_measurements(grasp, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_grasp')
 
-    experiment_measurements(regret, [points, distances], sum_all_groups, distances, points, plot_suffix='_regret')
+    # experiment_measurements(regret, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_regret')
+
+    # TODO: fill the bodies of local search functions
+    # Preparation for local search
+    grasp_groups = grasp(points, distances)
+    regret_groups = regret(points, distances)
+
+    experiment_measurements(local_search_greedy, [grasp_groups, points, distances], sum_all_groups_fully_connected,
+                            distances, points, plot_suffix='_local_search_greedy')
+
+    experiment_measurements(local_search_steep, [regret_groups, points, distances], sum_all_groups_fully_connected,
+                            distances, points, plot_suffix='_local_search_steep')
 
 
 main()
