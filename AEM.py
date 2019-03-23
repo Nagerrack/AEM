@@ -40,13 +40,22 @@ def sum_all_groups_mst(groups, dist_matrix):
     return sum([count_mst_length(group, dist_matrix) for group in groups])
 
 
-# TODO
 def sum_all_groups_fully_connected(groups, dist_matrix):
-    pass
+    distance_sums = []
+
+    for group in groups:
+        group_sum = 0
+        group_nodes = group.nodes()
+        for i in range(0, len(group_nodes)):
+            group_sum += sum([dist_matrix[i, j] for j in range(i, len(group_nodes))])
+        distance_sums.append(group_sum)
+
+    return np.mean(distance_sums)
 
 
 # the groups are represented as a list of 10 graphs
 # after an initialisation each group contains a randomly chosen point
+#TODO point should not be chosen randomly
 def init_groups(points, groups_number=10):
     groups = [nx.Graph() for _ in range(groups_number)]
     indices = []
@@ -96,7 +105,7 @@ def append_sequence(groups, sequence, dist_matrix):
         append_mst(groups[group], point, dist_matrix)
 
 
-# for each of n minimal MSTs finds the best appending of a next points to group
+# for each of n minimal MSTs finds the best appending of next points to group
 # and returns dictionary with a key of sum cost of adding both points
 def sum_regret(i, groups, min_msts, distances):
     cost_dict = {}
@@ -149,9 +158,8 @@ def local_search_steep(groups, dist_matrix):
 
 
 def main():
-    points = load_points(r'data\objects20_06.data')
+    points = load_points(r'data/objects20_06.data')
     distances = distance_matrix(points, points)
-
     # experiment_measurements(grasp, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_grasp')
 
     # experiment_measurements(regret, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_regret')
@@ -159,13 +167,17 @@ def main():
     # TODO: fill the bodies of local search functions
     # Preparation for local search
     grasp_groups = grasp(points, distances)
-    regret_groups = regret(points, distances)
+    #regret_groups = regret(points, distances)
 
-    experiment_measurements(local_search_greedy, [grasp_groups, points, distances], sum_all_groups_fully_connected,
-                            distances, points, plot_suffix='_local_search_greedy')
+    print(sum_all_groups_fully_connected(grasp_groups, distances))
 
-    experiment_measurements(local_search_steep, [regret_groups, points, distances], sum_all_groups_fully_connected,
-                            distances, points, plot_suffix='_local_search_steep')
+
+    # experiment_measurements(local_search_greedy, [grasp_groups, points, distances], sum_all_groups_fully_connected,
+                            # distances, points, plot_suffix='_local_search_greedy')
+
+    # sexperiment_measurements(local_search_steep, [regret_groups, points, distances], sum_all_groups_fully_connected,
+                            # distances, points, plot_suffix='_local_search_steep')
+
 
 
 main()
