@@ -49,13 +49,26 @@ def sum_pair_distances(group_nodes, dist_matrix):
     return group_sum
 
 
-def sum_all_groups_fully_connected(groups, dist_matrix):
+def average_pair_distances(group_nodes, dist_matrix):
+    group_distances = np.array([])
+
+    for i in range(len(group_nodes)):
+        group_distances = np.append(group_distances, [dist_matrix[group_nodes[i], group_nodes[j]] for j in range(i + 1, len(group_nodes))])
+
+    return np.mean(group_distances)
+
+
+def average_sum_all_groups(groups, dist_matrix):
     distance_sums = []
 
     for group in groups:
         distance_sums.append(sum_pair_distances(group.nodes(), dist_matrix))
 
     return np.mean(distance_sums)
+
+
+def sum_all_groups_fully_connected(groups, dist_matrix):
+    return sum([average_pair_distances(group.nodes(), dist_matrix) for group in groups])
 
 
 def is_distance_long_enough(point_id, indices, dist_matrix, min_distance):
