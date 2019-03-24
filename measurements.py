@@ -1,5 +1,5 @@
 import time
-
+import copy
 import matplotlib.pyplot as plt
 
 
@@ -19,7 +19,12 @@ def measure_execution_time_and_result(func, parameters):
 def experiment_measurements(func, parameters, aggregate_func, dist_matrix, points, plot_suffix=''):
     result_dict = {}
     for i in range(100):
-        result, time_elapsed = measure_execution_time_and_result(func, parameters)
+        parameters_copy = [None]
+        parameters_copy[0] = [group.copy() for group in parameters[0]]
+        for i in range(1, len(parameters)):
+            parameters_copy.append(parameters[i])
+
+        result, time_elapsed = measure_execution_time_and_result(func, parameters_copy)
         result_dict[round(aggregate_func(result, dist_matrix), 3)] = (result, time_elapsed)
 
     max_group, time_elapsed1 = result_dict[max(result_dict)]
