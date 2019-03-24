@@ -66,7 +66,7 @@ def init_groups(points, dist_matrix, groups_number=10):
     min_distances = np.array([])
 
     for i in range(len(points)):
-        np.append(min_distances, sum(np.sort(dist_matrix[i])[:average_group_size]))
+        min_distances = np.append(min_distances, sum(np.sort(dist_matrix[i])[:average_group_size]))
 
     indices = min_distances.argsort()[:10]
 
@@ -108,6 +108,7 @@ def find_min_average_distances_sum(point_id, groups, distances):
 # 2. adds the point to a randomly chosen group (to one of those 3)
 def grasp(points, distances):
     groups, indices = init_groups(points, distances)
+
 
     for i, point in enumerate(points):
         if i in indices:
@@ -180,20 +181,20 @@ def local_search_steep(groups, dist_matrix):
 def main():
     points = load_points(r'data/objects20_06.data')
     distances = distance_matrix(points, points)
-    # experiment_measurements(grasp, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_grasp')
+    experiment_measurements(grasp, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_grasp')
 
     # experiment_measurements(regret, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_regret')
 
     # TODO: fill the bodies of local search functions
     # Preparation for local search
-    grasp_groups = grasp(points, distances)
-    #regret_groups = regret(points, distances)
+    # grasp_groups = grasp(points, distances)
+    # regret_groups = regret(points, distances)
 
-    print(sum_all_groups_fully_connected(grasp_groups, distances))
+    # print(sum_all_groups_fully_connected(grasp_groups, distances))
 
 
     # experiment_measurements(local_search_greedy, [grasp_groups, points, distances], sum_all_groups_fully_connected,
-                            # distances, points, plot_suffix='_local_search_greedy')
+                            #distances, points, plot_suffix='_local_search_greedy')
 
     # sexperiment_measurements(local_search_steep, [regret_groups, points, distances], sum_all_groups_fully_connected,
                             # distances, points, plot_suffix='_local_search_steep')
