@@ -49,15 +49,6 @@ def sum_pair_distances(group_nodes, dist_matrix):
     return group_sum
 
 
-def average_pair_distances(group_nodes, dist_matrix):
-    group_distances = np.array([])
-
-    for i in range(len(group_nodes)):
-        group_distances = np.append(group_distances, [dist_matrix[group_nodes[i], group_nodes[j]] for j in range(i + 1, len(group_nodes))])
-
-    return np.mean(group_distances)
-
-
 def average_sum_all_groups(groups, dist_matrix):
     distance_sums = []
 
@@ -65,6 +56,15 @@ def average_sum_all_groups(groups, dist_matrix):
         distance_sums.append(sum_pair_distances(group.nodes(), dist_matrix))
 
     return np.mean(distance_sums)
+
+
+def average_pair_distances(group_nodes, dist_matrix):
+    group_distances = np.array([])
+
+    for i in range(len(group_nodes)):
+        group_distances = np.append(group_distances, [dist_matrix[group_nodes[i], group_nodes[j]] for j in range(i + 1, len(group_nodes))])
+
+    return np.mean(group_distances)
 
 
 def sum_all_groups_fully_connected(groups, dist_matrix):
@@ -118,16 +118,16 @@ def find_n_min_msts(point_id, groups, distances, n=3):
     return sorted(groups_mst, key=lambda l: l[1])[:n]
 
 
-def get_sum_append_cost(node, group_nodes, dist_matrix):
+def get_init_sum_append_cost(node, group_nodes, dist_matrix):
     return sum([dist_matrix[node, i] for i in group_nodes])
 
 # finds 1 group which has the smallest average sum of distances between each pair
 def find_min_average_distances_sum(point_id, groups, distances):
     min_group_id = 0
-    min_append_cost = get_sum_append_cost(point_id, groups[0].nodes(), distances)
+    min_append_cost = get_init_sum_append_cost(point_id, groups[0].nodes(), distances)
 
     for i in range(1, len(groups)):
-        append_cost = get_sum_append_cost(point_id, groups[i].nodes(), distances)
+        append_cost = get_init_sum_append_cost(point_id, groups[i].nodes(), distances)
         if min_append_cost > append_cost:
             min_append_cost = append_cost
             min_group_id = i
@@ -204,31 +204,72 @@ def local_search_greedy(groups, dist_matrix):
     return groups
 
 
-# TODO
+def get_best_node_move(current_group_id, groups, node, dist_matrix):
+    group_nodes = groups[current_group_id].nodes()
+    current_average_dist = np.mean(np.array([dist_matrix[node, i] for i in group_nodes]))
+
+    best_move = {'node': node, 'from': current_group_id, 'to': -1, 'profit': 0}
+
+    for i, group in enumerate(groups):
+        if i == current_group_id:
+            continue
+
+        group_nodes = group.nodes()
+        average_dist = np.mean(np.array([dist_matrix[node, i] for i in group_nodes]))
+
+        if (current_average_dist - average_dist) > best_move['profit']:
+            best_move['to'] = i
+            best_move['profit'] = current_average_dist - average_dist
+
+    return best_move
+
+
+def get_best_general_move(groups, dist_matrix):
+    best_move = {'node': -1, 'from': -1, 'to': -1, 'profit': -1}
+
+    for i, group in enumerate(groups):
+        group_nodes = group.nodes()
+        for node in group_nodes:
+            move = get_best_node_move(i, groups, node, dist_matrix)
+
+            if move['profit'] > best_move['profit']:
+                best_move = move
+
+    return best_move
+
+
 def local_search_steep(groups, dist_matrix):
+    best_move = {'node': -1, 'from': -1, 'to': -1, 'profit': 1}
+
+    while best_move['profit'] > 0:
+        best_move = get_best_general_move(groups, dist_matrix)
+        if best_move['profit'] > 0:
+            groups[best_move['from']].remove_node(best_move['node'])
+            groups[best_move['to']].add_node(best_move['node'])
+
     return groups
 
 
 def main():
     points = load_points(r'data/objects20_06.data')
     distances = distance_matrix(points, points)
-    experiment_measurements(grasp, [points, distances], sum_all_groups_fully_connected, distances, points, plot_suffix='_grasp')
+    # experiment_measurements(grasp, [points, distances], sum_all_groups_fully_connected, distances, points, plot_suffix='_grasp')
 
     # experiment_measurements(regret, [points, distances], sum_all_groups_mst, distances, points, plot_suffix='_regret')
 
     # TODO: fill the bodies of local search functions
     # Preparation for local search
-    # grasp_groups = grasp(points, distances)
+    grasp_groups = grasp(points, distances)
     # regret_groups = regret(points, distances)
 
-    # print(sum_all_groups_fully_connected(grasp_groups, distances))
+    # groups = local_search_steep(points, distances)
 
 
     # experiment_measurements(local_search_greedy, [grasp_groups, points, distances], sum_all_groups_fully_connected,
                             #distances, points, plot_suffix='_local_search_greedy')
 
-    # sexperiment_measurements(local_search_steep, [regret_groups, points, distances], sum_all_groups_fully_connected,
-                            # distances, points, plot_suffix='_local_search_steep')
+    experiment_measurements(local_search_steep, [grasp_groups, distances], sum_all_groups_fully_connected,
+                            distances, points, plot_suffix='_local_search_steep')
 
 
 
