@@ -79,9 +79,9 @@ def is_distance_long_enough(point_id, indices, dist_matrix, min_distance):
     return True
 
 
-# the groups are represented as a list of 10 graphs
+# the groups are represented as a list of 20 graphs
 # after an initialisation each group contains a point which is quite close to n other points (n = average group size)
-def init_groups(points, dist_matrix, groups_number=10):
+def init_groups(points, dist_matrix, groups_number=20):
     groups = [nx.Graph() for _ in range(groups_number)]
     average_group_size = len(points) // groups_number
     min_dist = np.mean(dist_matrix) / 4
@@ -99,7 +99,7 @@ def init_groups(points, dist_matrix, groups_number=10):
             continue
 
         indices = np.append(indices, point_id)
-        if len(indices) >= 10:
+        if len(indices) >= groups_number:
             break
 
     for i in range(len(indices)):
@@ -246,7 +246,6 @@ def local_search_steep(groups, dist_matrix):
         if best_move['profit'] > 0:
             groups[best_move['from']].remove_node(best_move['node'])
             groups[best_move['to']].add_node(best_move['node'])
-
     return groups
 
 
