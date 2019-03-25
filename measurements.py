@@ -1,5 +1,5 @@
 import time
-import copy
+
 import matplotlib.pyplot as plt
 
 
@@ -16,21 +16,18 @@ def measure_execution_time_and_result(func, parameters):
     return result, time_elapsed
 
 
-def experiment_measurements(func, parameters, aggregate_func, dist_matrix, points, plot_suffix=''):
+def experiment_measurements(func, group_generator, aggregate_func, dist_matrix, points, plot_suffix=''):
+    start_time = time.time()
     result_dict = {}
     for i in range(100):
-        parameters_copy = [None]
-        parameters_copy[0] = [group.copy() for group in parameters[0]]
-        for i in range(1, len(parameters)):
-            parameters_copy.append(parameters[i])
-
-        result, time_elapsed = measure_execution_time_and_result(func, parameters_copy)
+        groups = group_generator(points, dist_matrix)
+        result, time_elapsed = measure_execution_time_and_result(func, [groups, dist_matrix])
         result_dict[round(aggregate_func(result, dist_matrix), 3)] = (result, time_elapsed)
 
     max_group, time_elapsed1 = result_dict[max(result_dict)]
     min_group, time_elapsed2 = result_dict[min(result_dict)]
-    plot_groups(max_group, points, save=True, name='plots/max_figure' + plot_suffix)
-    plot_groups(min_group, points, save=True, name='plots/min_figure' + plot_suffix)
+    plot_groups(max_group, points, save=True, name='plots/' + plot_suffix + '_max')
+    plot_groups(min_group, points, save=True, name='plots/' + plot_suffix + '_min')
 
     time_list = [result[1] for result in result_dict.values()]
 
@@ -40,13 +37,18 @@ def experiment_measurements(func, parameters, aggregate_func, dist_matrix, point
         round(result_dict[max(result_dict)][1], 4),
         round(result_scores(time_list)[2], 4)
     ))
+
+    print('Experiment Time: {}s'.format(round(time.time() - start_time, 3)))
     # print('Time:')
     # print('Min:{}, Max:{}, Average:{}', *result_scores([result[1] for result in result_dict.values()]))
 
 
 def plot_groups(groups, points, save=False, name='figure'):
-    colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF',
-              '#FF00FF', '#FF8C00', '#696969', '#7B68EE', '#7FFFD4', '#008080']
+    colors = ['#f23d55', '#594358', '#4073ff', '#468c62', '#475900', '#d9b8a3', '#8c4646', '#591628', '#d600e6',
+              '#6086bf', '#00330e', '#e5da39', '#730f00', '#ff0088', '#2c00a6', '#2d4459', '#435949', '#bf8000',
+              '#8c6e69', '#cc99bb', '#4400ff', '#00b8e6', '#007300', '#33260d', '#ffc8bf', '#400033', '#c8bfff',
+              '#407b80', '#73e673', '#8c7546', '#e50000', '#ff80e5', '#393973', '#bffbff', '#88ff00', '#4c1f00'
+              ]
 
     color_dict = {i: colors[i] for i in range(len(colors))}
 
