@@ -19,7 +19,8 @@ def measure_execution_time_and_result(func, parameters):
 def experiment_measurements(func, group_generator, aggregate_func, dist_matrix, points, plot_suffix=''):
     start_time = time.time()
     result_dict = {}
-    for i in range(100):
+
+    for i in range(1):
         groups = group_generator(points, dist_matrix)
         result, time_elapsed = measure_execution_time_and_result(func, [groups, dist_matrix])
         result_dict[round(aggregate_func(result, dist_matrix), 3)] = (result, time_elapsed)
