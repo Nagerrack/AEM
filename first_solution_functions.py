@@ -29,7 +29,7 @@ def init_groups(points, dist_matrix, groups_number=20):
     indices = np.append(indices, sorted_point_ids[0])
 
     for point_id in range(1, len(sorted_point_ids)):
-        if is_distance_long_enough(point_id, indices, dist_matrix, min_dist) == False:
+        if not is_distance_long_enough(point_id, indices, dist_matrix, min_dist):
             continue
 
         indices = np.append(indices, point_id)
@@ -61,7 +61,7 @@ def init_groups_random(points, groups_number=20):
 
 
 def get_init_sum_append_cost(node, group_nodes, dist_matrix):
-    return sum([dist_matrix[node, i] for i in group_nodes])
+    return sum([dist_matrix[node][i] for i in group_nodes])
 
 
 # finds n groups which have the smallest minimal spanning trees after adding a new point
@@ -100,6 +100,14 @@ def grasp(points, distances):
 
         min_msts = find_n_min_msts(i, groups, distances)
         index = min_msts[0][0]
+        groups[index].add_node(i)
+
+    return groups
+
+
+def grasp_fully_connected(points_left, groups, distances):
+    for i in points_left:
+        index = find_min_average_distances_sum(i, groups, distances)
         groups[index].add_node(i)
 
     return groups

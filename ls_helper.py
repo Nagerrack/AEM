@@ -5,7 +5,7 @@ import numpy as np
 
 def sum_pair_distances(group_nodes, dist_matrix):
     group_sum = 0
-
+    group_nodes = list(group_nodes.keys())
     for i in range(len(group_nodes)):
         group_sum += sum([dist_matrix[group_nodes[i], group_nodes[j]] for j in range(i + 1, len(group_nodes))])
 

@@ -1,8 +1,13 @@
+import copy
 import random
+import time
+
 import networkx as nx
 import numpy as np
 
-from ls_helper import average_pair_distances
+from first_solution_functions import grasp, grasp_fully_connected
+from ls_helper import average_pair_distances, sum_all_groups_fully_connected
+
 
 def get_best_node_move_cache(current_group_id, groups, node, remote_groups, edges_number, profits_cache):
     current_nodes_number = groups[current_group_id].number_of_nodes() - 1
@@ -20,7 +25,6 @@ def get_best_node_move_cache(current_group_id, groups, node, remote_groups, edge
             best_move['profit'] = profits_cache[node][1][i]
             best_move['egdes'] = group_egdes
 
-
     return best_move
 
 
@@ -30,6 +34,7 @@ def consists(closest_list, group_nodes):
             return True
 
     return False
+
 
 def get_best_node_move_closest(current_group_id, groups, node, dist_matrix, edges_number, closest_groups):
     group_nodes = groups[current_group_id].nodes()
@@ -261,12 +266,14 @@ def local_search_steep(groups, dist_matrix):
 
     remote_groups = determine_remote_groups(groups, dist_matrix)
     while best_move['profit'] > 0:
-        best_move = get_best_general_move(groups, dist_matrix, remote_groups, edges_number, profits_cache, closest_groups)
+        best_move = get_best_general_move(groups, dist_matrix, remote_groups, edges_number, profits_cache,
+                                          closest_groups)
         if best_move['profit'] > 0:
             groups[best_move['from']].remove_node(best_move['node'])
             groups[best_move['to']].add_node(best_move['node'])
             edges_number = best_move['egdes']
-            profits_cache = update_cache(profits_cache, groups, [best_move['from'], best_move['to']], dist_matrix, edges_number)
+            profits_cache = update_cache(profits_cache, groups, [best_move['from'], best_move['to']], dist_matrix,
+                                         edges_number)
 
     return groups
 
@@ -291,3 +298,87 @@ def local_search_greedy(groups, dist_matrix):
             groups[move['to']].add_node(move['node'])
 
     return groups
+
+
+def msls(points, dist_matrix):
+    result_dict = {}
+
+    for i in range(100):
+        groups = grasp(points, dist_matrix)
+        groups = local_search_steep(groups, dist_matrix)
+        result_dict[sum_all_groups_fully_connected(groups, dist_matrix)] = groups
+
+    return result_dict[min(result_dict)]
+
+
+def get_time(timepoint):
+    return time.time() - timepoint
+
+
+def ils_small(max_time, points, dist_matrix):
+    timepoint = time.time()
+    groups = grasp(points, dist_matrix)
+    previous_groups = local_search_steep(groups, dist_matrix)
+    swap_number = random.randint(2, 10)
+    while get_time(timepoint) < max_time:
+        #print(get_time(timepoint))
+        new_groups = swap_points(swap_number, copy.deepcopy(previous_groups))
+        new_groups = local_search_steep(new_groups, dist_matrix)
+        if (sum_all_groups_fully_connected(new_groups, dist_matrix) <
+                sum_all_groups_fully_connected(previous_groups, dist_matrix)):
+            if swap_number < int(len(points) * 0.1):
+                swap_number += 1
+        else:
+            if swap_number > 1:
+                swap_number -= 1
+        #print(swap_number)
+        previous_groups = new_groups
+    return previous_groups
+
+
+def ils_big(max_time, points, dist_matrix):
+    timepoint = time.time()
+    groups = grasp(points, dist_matrix)
+    previous_groups = local_search_steep(groups, dist_matrix)
+    destroy_number = random.randint(int(len(points) * 0.1), int(len(points) * 0.3))
+    while get_time(timepoint) < max_time:
+        new_groups = destroy(copy.deepcopy(previous_groups), destroy_number)
+        new_groups = repair(new_groups, points, dist_matrix)
+        new_groups = local_search_steep(new_groups, dist_matrix)
+        if (sum_all_groups_fully_connected(new_groups, dist_matrix) <
+                sum_all_groups_fully_connected(previous_groups, dist_matrix)):
+            previous_groups = new_groups
+        timepoint = time.time()
+    return previous_groups
+
+
+def swap_points(swap_number, groups):
+    for i in range(swap_number):
+        group1_number = random.randrange(len(groups))
+        group2_number = random.randrange(len(groups))
+        group1 = groups[group1_number]
+        group2 = groups[group2_number]
+        nodes1 = groups[group1_number].nodes()
+        node1_index = random.randrange(len(groups[group1_number].nodes()))
+        node1 = list(nodes1.keys())[node1_index]
+        group1.remove_node(node1)
+        group2.add_node(node1)
+    return groups
+
+
+# def small_perturbation():
+#     pass
+#
+#
+# def big_perturbation(groups):
+#     destroy(groups)
+#     repair(groups)
+#     pass
+
+
+def destroy(groups, destroy_number):
+    return groups
+
+
+def repair(groups, points_left, dist_matrix):
+    return grasp_fully_connected(points_left, groups, dist_matrix)

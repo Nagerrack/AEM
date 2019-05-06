@@ -20,7 +20,7 @@ def experiment_measurements(func, group_generator, aggregate_func, dist_matrix, 
     start_time = time.time()
     result_dict = {}
 
-    for i in range(1):
+    for i in range(100):
         groups = group_generator(points, dist_matrix)
         result, time_elapsed = measure_execution_time_and_result(func, [groups, dist_matrix])
         result_dict[round(aggregate_func(result, dist_matrix), 3)] = (result, time_elapsed)
@@ -42,6 +42,31 @@ def experiment_measurements(func, group_generator, aggregate_func, dist_matrix, 
     print('Experiment Time: {}s'.format(round(time.time() - start_time, 3)))
     # print('Time:')
     # print('Min:{}, Max:{}, Average:{}', *result_scores([result[1] for result in result_dict.values()]))
+
+
+def experiment_measurements_parameters(func, parameters, aggregate_func, dist_matrix, points, plot_suffix=''):
+    start_time = time.time()
+    result_dict = {}
+
+    for i in range(3):
+        result, time_elapsed = measure_execution_time_and_result(func, parameters)
+        result_dict[round(aggregate_func(result, dist_matrix), 3)] = (result, time_elapsed)
+
+    max_group, time_elapsed1 = result_dict[max(result_dict)]
+    min_group, time_elapsed2 = result_dict[min(result_dict)]
+    plot_groups(max_group, points, save=True, name='plots/' + plot_suffix + '_max')
+    plot_groups(min_group, points, save=True, name='plots/' + plot_suffix + '_min')
+
+    time_list = [result[1] for result in result_dict.values()]
+
+    print('Min:{0}, {3}s; Max:{1}, {4}s; Average:{2}, {5}s'.format(
+        *result_scores(result_dict.keys()),
+        round(result_dict[min(result_dict)][1], 4),
+        round(result_dict[max(result_dict)][1], 4),
+        round(result_scores(time_list)[2], 4)
+    ))
+
+    print('Experiment Time: {}s'.format(round(time.time() - start_time, 3)))
 
 
 def plot_groups(groups, points, save=False, name='figure'):
