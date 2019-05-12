@@ -29,9 +29,9 @@ def main():
     # time 338.1591s
     # print(sum_all_groups_fully_connected(ils_small(20.0, points, distances), distances))
 
-    experiment_measurements_parameters(ils_small, [200.0, points, distances], sum_all_groups_fully_connected, distances,
+    experiment_measurements_parameters(ils_big, [645.0, points, distances], sum_all_groups_fully_connected, distances,
                                        points,
-                                       plot_suffix='_ils_small2')
+                                       plot_suffix='ils_645big')
 
 
 main()

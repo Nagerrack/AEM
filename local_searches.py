@@ -5,7 +5,7 @@ import time
 import networkx as nx
 import numpy as np
 
-from first_solution_functions import grasp, grasp_fully_connected
+from first_solution_functions import grasp, grasp_fully_connected, random_heuristic
 from ls_helper import average_pair_distances, sum_all_groups_fully_connected
 
 
@@ -304,7 +304,7 @@ def msls(points, dist_matrix):
     result_dict = {}
 
     for i in range(100):
-        groups = grasp(points, dist_matrix)
+        groups = random_heuristic(points, dist_matrix)
         groups = local_search_steep(groups, dist_matrix)
         result_dict[sum_all_groups_fully_connected(groups, dist_matrix)] = groups
 
@@ -317,38 +317,37 @@ def get_time(timepoint):
 
 def ils_small(max_time, points, dist_matrix):
     timepoint = time.time()
-    groups = grasp(points, dist_matrix)
+    groups = random_heuristic(points, dist_matrix)
     previous_groups = local_search_steep(groups, dist_matrix)
     swap_number = random.randint(2, 10)
     while get_time(timepoint) < max_time:
-        #print(get_time(timepoint))
+        # print(get_time(timepoint))
         new_groups = swap_points(swap_number, copy.deepcopy(previous_groups))
         new_groups = local_search_steep(new_groups, dist_matrix)
         if (sum_all_groups_fully_connected(new_groups, dist_matrix) <
                 sum_all_groups_fully_connected(previous_groups, dist_matrix)):
-            if swap_number < int(len(points) * 0.1):
-                swap_number += 1
-        else:
             if swap_number > 1:
                 swap_number -= 1
-        #print(swap_number)
-        previous_groups = new_groups
+            previous_groups = new_groups
+        else:
+            if swap_number < int(len(points) * 0.1):
+                swap_number += 1
+        # print(swap_number)
     return previous_groups
 
 
 def ils_big(max_time, points, dist_matrix):
     timepoint = time.time()
-    groups = grasp(points, dist_matrix)
+    groups = random_heuristic(points, dist_matrix)
     previous_groups = local_search_steep(groups, dist_matrix)
     destroy_number = random.randint(int(len(points) * 0.1), int(len(points) * 0.3))
     while get_time(timepoint) < max_time:
-        new_groups = destroy(copy.deepcopy(previous_groups), destroy_number)
-        new_groups = repair(new_groups, points, dist_matrix)
+        new_groups, deleted = destroy(copy.deepcopy(previous_groups), destroy_number)
+        new_groups = repair(new_groups, deleted, dist_matrix)
         new_groups = local_search_steep(new_groups, dist_matrix)
         if (sum_all_groups_fully_connected(new_groups, dist_matrix) <
                 sum_all_groups_fully_connected(previous_groups, dist_matrix)):
             previous_groups = new_groups
-        timepoint = time.time()
     return previous_groups
 
 
@@ -366,18 +365,20 @@ def swap_points(swap_number, groups):
     return groups
 
 
-# def small_perturbation():
-#     pass
-#
-#
-# def big_perturbation(groups):
-#     destroy(groups)
-#     repair(groups)
-#     pass
-
-
 def destroy(groups, destroy_number):
-    return groups
+    deleted = []
+    for i in range(destroy_number):
+        flag = 0
+        while flag < 1:
+            group_index = random.randrange(len(groups))
+            group = groups[group_index]
+            nodes = group.nodes()
+            flag = len(nodes)
+        node_index = random.randrange(len(nodes))
+        node = list(nodes.keys())[node_index]
+        group.remove_node(node)
+        deleted.append(node)
+    return groups, deleted
 
 
 def repair(groups, points_left, dist_matrix):
