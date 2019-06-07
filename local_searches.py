@@ -109,8 +109,11 @@ def get_best_node_move(current_group_id, groups, node, dist_matrix, remote_group
     return best_move
 
 
-def get_best_general_move(groups, dist_matrix, remote_groups, edges_number, profits_cache, closest_groups):
+def get_best_general_move(groups, dist_matrix, remote_groups, edges_number, profits_cache, closest_groups, shuffle=False):
     best_move = {'node': -1, 'from': -1, 'to': -1, 'profit': -1, 'edges': -1}
+
+    if shuffle == True:
+        shuffled_groups = random.shuffle(groups)
 
     for i, group in enumerate(groups):
         group_nodes = group.nodes()
@@ -309,6 +312,19 @@ def msls(points, dist_matrix):
         result_dict[sum_all_groups_fully_connected(groups, dist_matrix)] = groups
 
     return result_dict[min(result_dict)]
+
+
+def get_n_msls_solutions(points, dist_matrix, n):
+    results = []
+
+    for i in range(n):
+        if i % 20 == 0:
+            print(i)
+        groups = random_heuristic(points, dist_matrix)
+        groups = local_search_steep(groups, dist_matrix)
+        results.append({'groups': groups, 'result': sum_all_groups_fully_connected(groups, dist_matrix), 'best_sim': 0, 'ave_sim': 0})
+
+    return results
 
 
 def get_time(timepoint):
