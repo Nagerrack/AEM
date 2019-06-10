@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 def reverse_groups(groups):
     dict = {}
 
@@ -10,6 +11,7 @@ def reverse_groups(groups):
             dict[node] = i
 
     return dict
+
 
 def count_similarity(groups1, groups2):
     similarity = 0
@@ -48,12 +50,13 @@ def fill_best_similarities(results):
 
     return results
 
-def fill_average_similarities(results):
 
+def fill_average_similarities(results):
     for i, result in enumerate(results):
         if i % 20 == 0:
             print(i)
-        results[i]['ave_sim'] = np.mean([count_similarity(result['groups'], results[j]['groups']) for j in range(len(results)) if i != j])
+        results[i]['ave_sim'] = np.mean(
+            [count_similarity(result['groups'], results[j]['groups']) for j in range(len(results)) if i != j])
 
     return results
 
